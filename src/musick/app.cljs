@@ -19,11 +19,12 @@
 (def notes-seq (cycle notes))
 
 (def scales
-  {:major         [0 2 2 1 2 2 2]
-   :minor         [0 2 1 2 2 1 2]
-   #_#_:diminshed []
-   #_#_:augmented []
-   #_#_:dominant  []
+  {:major          {:intervals [0 2 2 1 2 2 2]}
+   :minor          {:intervals [0 2 1 2 2 1 2]}
+   :harmonic-minor {:intervals [0 2 1 2 2 1 3]}
+   #_#_:diminshed  []
+   #_#_:augmented  []
+   #_#_:dominant   []
    })
 
 (defn tap [tag x]
@@ -31,12 +32,12 @@
   x)
 
 (defn notes-in-scale
-  [root scale]
-  (let [intervals        (get scales scale)
-        rooted-scale-seq (drop-while #(not= %1 root) notes-seq)]
+  [tonic scale]
+  (let [intervals        (get-in scales [scale :intervals])
+        tonic-scale-seq (drop-while #(not= %1 tonic) notes-seq)]
     (as->
         {:scale     []
-         :scale-seq rooted-scale-seq} $
+         :scale-seq tonic-scale-seq} $
       (reduce
         (fn [{:keys [scale-seq] :as acc} interval]
           (let [next-seq  (drop interval scale-seq)
@@ -52,7 +53,7 @@
   [selected-note set-note index note]
   [:li (merge
          (when (= note selected-note)
-           (style :selected))
+           {:className "selected"})
          {:key (str index "-" note)})
    [:a {:href     "#"
         :on-click #(set-note note)}
@@ -61,7 +62,8 @@
 (defn render-scale
   [selected-scale set-scale index scale]
   [:li (merge
-         (style {:selected #(= scale selected-scale)})
+         (when (= scale selected-scale)
+           {:className "selected"})
          {:key (str index "-" scale)})
    [:a {:href     "#"
         :on-click #(set-scale scale) }
@@ -99,9 +101,13 @@
         (doall
           (->>
             (notes-in-scale @note @scale)
-            (map-indexed (fn [idx n] [:li {:key idx} n]))))]]]]))
+            (map-indexed (fn [idx n]
+                           [:li {:key idx}
+                            [:h2 n]
+                            [:span (inc idx)]]))))]]]]))
 
-(defonce root (createRoot (gdom/getElement "app")))
+(defonce root
+  (createRoot (gdom/getElement "app")))
 
 (defn init
   "initialize root application"
