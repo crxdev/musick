@@ -1,0 +1,44 @@
+body {
+    background-color: #334;
+    color: white;
+    font-size: 16px;
+}
+
+a {
+    color: white;
+}
+
+.picker nav ul
+{
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.picker nav ul li
+{
+    background-color: #222;
+    border-radius: 8px;
+    border: 1px solid #666;
+    flex: 1;
+    margin: 0.5em;
+    padding: 1em;
+    text-align: center;
+}
+
+.picker nav ul li:hover
+{
+    background-color: #111;
+}
+
+.picker nav ul li a {
+    display: inline-block;
+    height: 100%;
+    text-decoration: none;
+    width: 100%;
+}
