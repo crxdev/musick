@@ -1,5 +1,6 @@
 .cpcache/
 .shadow-cljs/
+.nrepl-port
 node_modules/
 public/js/cljs-runtime/
 public/js/main.js

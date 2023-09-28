@@ -1,8 +1,8 @@
 (ns musick.app
   (:require
    [goog.dom :as gdom]
-   ;; [goog.string :as gstr]
-   ;; [goog.string.format]
+   [goog.string :as gstr]
+   [goog.string.format]
    [reagent.core :as r]
    ["react-dom/client" :refer [createRoot]]))
 
@@ -14,21 +14,39 @@
   {:style (get styles k {})})
 
 (def notes
-  {:A []
-   :B []
-   :C []
-   :D []
-   :E []
-   :F []
-   :G []})
+  [:A :A#-Bb :B :C :C#-Db :D :D#-Eb :E :F :F#-Gb :G :G#-Ab])
+
+(def notes-seq (cycle notes))
 
 (def scales
-  {:major         [0 4 2 1 2 2 2 1]
-   :minor         [0 2 1 2 2 1 2 1]
+  {:major         [0 2 2 1 2 2 2]
+   :minor         [0 2 1 2 2 1 2]
    #_#_:diminshed []
    #_#_:augmented []
    #_#_:dominant  []
    })
+
+(defn tap [tag x]
+  (println {tag x})
+  x)
+
+(defn notes-in-scale
+  [root scale]
+  (let [intervals        (get scales scale)
+        rooted-scale-seq (drop-while #(not= %1 root) notes-seq)]
+    (as->
+        {:scale     []
+         :scale-seq rooted-scale-seq} $
+      (reduce
+        (fn [{:keys [scale-seq] :as acc} interval]
+          (let [next-seq  (drop interval scale-seq)
+                next-note (first next-seq)
+                #_#_next-seq  (drop 1 next-seq)]
+            (-> acc
+              (update :scale concat [next-note])
+              (assoc :scale-seq next-seq))))
+       $ intervals)
+      (get $ :scale))))
 
 (defn render-note
   [selected-note set-note index note]
@@ -51,7 +69,7 @@
 
 (defn main
   []
-  (r/with-let [note      (r/atom :A)
+  (r/with-let [note      (r/atom :C)
                scale     (r/atom :major)
                set-note  (fn [new-note] (reset! note new-note))
                set-scale (fn [new-scale] (reset! scale new-scale))]
@@ -65,7 +83,6 @@
        [:ul
         (doall
           (->> notes
-            (keys)
             (map-indexed (partial render-note @note set-note))))]]]
      [:div#scales.picker
       [:nav
@@ -74,7 +91,15 @@
         (doall
           (->> scales
             (keys)
-            (map-indexed (partial render-scale @scale set-scale))))]]]]))
+            (map-indexed (partial render-scale @scale set-scale))))]]]
+     [:div#scales.picker
+      [:nav
+       [:h3 (gstr/format "Notes in %s %s" (name @note) (name @scale))]
+       [:ul
+        (doall
+          (->>
+            (notes-in-scale @note @scale)
+            (map-indexed (fn [idx n] [:li {:key idx} n]))))]]]]))
 
 (defonce root (createRoot (gdom/getElement "app")))
 
